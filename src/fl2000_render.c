@@ -10,6 +10,207 @@
 
 #include "fl2000_include.h"
 
+#define BULK_SIZE		512
+#define MAX_TRANSFER		(PAGE_SIZE*16 - BULK_SIZE)
+#define GET_URB_TIMEOUT		HZ
+#define WRITES_IN_FLIGHT	4
+
+void fl2k_urb_completion(struct urb *urb)
+{
+	struct urb_node *unode = urb->context;
+	struct dev_ctx *fl2k = unode->fl2k;
+	unsigned long flags;
+
+	/* sync/async unlink faults aren't errors */
+	if (urb->status) {
+		if (!(urb->status == -ENOENT ||
+		    urb->status == -ECONNRESET ||
+		    urb->status == -ESHUTDOWN)) {
+			dev_err(&fl2k->usb_dev->dev, "%s - nonzero write bulk status received: %d\n",
+				__func__, urb->status);
+			atomic_set(&fl2k->lost_pixels, 1);
+		}
+	}
+
+	urb->transfer_buffer_length = fl2k->urbs.size; /* reset to actual */
+
+	spin_lock_irqsave(&fl2k->urbs.lock, flags);
+	list_add_tail(&unode->entry, &fl2k->urbs.list);
+	fl2k->urbs.available++;
+	spin_unlock_irqrestore(&fl2k->urbs.lock, flags);
+
+#if 0
+	/*
+	 * When using fb_defio, we deadlock if up() is called
+	 * while another is waiting. So queue to another process.
+	 */
+	if (fb_defio)
+		schedule_delayed_work(&unode->release_urb_work, 0);
+	else
+#endif
+		up(&fl2k->urbs.limit_sem);
+}
+
+void fl2k_release_urb_work(struct work_struct *work)
+{
+	struct urb_node *unode = container_of(work, struct urb_node,
+					      release_urb_work.work);
+
+	up(&unode->fl2k->urbs.limit_sem);
+}
+
+static void fl2k_free_urb_list(struct dev_ctx *fl2k)
+{
+	int count = fl2k->urbs.count;
+	struct list_head *node;
+	struct urb_node *unode;
+	struct urb *urb;
+	int ret;
+	unsigned long flags;
+
+	dev_info(&fl2k->usb_dev->dev, "Waiting for completes and freeing all render urbs\n");
+
+	/* keep waiting and freeing, until we've got 'em all */
+	while (count--) {
+
+		/* Getting interrupted means a leak, but ok at shutdown*/
+		ret = down_interruptible(&fl2k->urbs.limit_sem);
+		if (ret)
+			break;
+
+		spin_lock_irqsave(&fl2k->urbs.lock, flags);
+
+		node = fl2k->urbs.list.next; /* have reserved one with sem */
+		list_del_init(node);
+
+		spin_unlock_irqrestore(&fl2k->urbs.lock, flags);
+
+		unode = list_entry(node, struct urb_node, entry);
+		urb = unode->urb;
+
+		/* Free each separately allocated piece */
+		usb_free_coherent(urb->dev, fl2k->urbs.size,
+				  urb->transfer_buffer, urb->transfer_dma);
+		usb_free_urb(urb);
+		kfree(node);
+	}
+	fl2k->urbs.count = 0;
+}
+
+
+int fl2k_alloc_urb_list(struct dev_ctx *fl2k, int count, size_t size)
+{
+	int i = 0;
+	struct urb *urb;
+	struct urb_node *unode;
+	char *buf;
+	struct usb_host_endpoint *ep =
+		usb_pipe_endpoint(fl2k->usb_dev, usb_sndbulkpipe(fl2k->usb_dev, 1));
+
+	spin_lock_init(&fl2k->urbs.lock);
+
+	fl2k->urbs.size = size;
+	INIT_LIST_HEAD(&fl2k->urbs.list);
+
+	dev_info(&fl2k->usb_dev->dev, "ep fl2k_alloc_urb_list() pipe %d ep %p",
+		 1, ep);
+
+	while (i < count) {
+		unode = kzalloc(sizeof(struct urb_node), GFP_KERNEL);
+		if (!unode)
+			break;
+		unode->fl2k = fl2k;
+
+		INIT_DELAYED_WORK(&unode->release_urb_work,
+			  fl2k_release_urb_work);
+
+		urb = usb_alloc_urb(0, GFP_KERNEL);
+		if (!urb) {
+			kfree(unode);
+			break;
+		}
+		unode->urb = urb;	/* ULLI check udl driver here */
+
+		buf = usb_alloc_coherent(fl2k->usb_dev, MAX_TRANSFER, GFP_KERNEL,
+					 &urb->transfer_dma);
+		if (!buf) {
+			kfree(unode);
+			usb_free_urb(urb);
+			break;
+		}
+
+		/* urb->transfer_buffer_length set to actual before submit */
+		usb_fill_bulk_urb(urb, fl2k->usb_dev,
+				  usb_sndbulkpipe(fl2k->usb_dev, 1),
+				  buf, size,
+				  fl2k_urb_completion, unode);
+		urb->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
+
+		list_add_tail(&unode->entry, &fl2k->urbs.list);
+
+		i++;
+	}
+
+	sema_init(&fl2k->urbs.limit_sem, i);
+	fl2k->urbs.count = i;
+	fl2k->urbs.available = i;
+
+	dev_info(&fl2k->usb_dev->dev ,"allocated %d %d byte urbs\n", i, (int) size);
+
+	return i;
+}
+
+struct urb *fl2k_get_urb(struct dev_ctx *fl2k)
+{
+	int ret = 0;
+	struct list_head *entry;
+	struct urb_node *unode;
+	struct urb *urb = NULL;
+	unsigned long flags;
+
+	/* Wait for an in-flight buffer to complete and get re-queued */
+	ret = down_timeout(&fl2k->urbs.limit_sem, GET_URB_TIMEOUT);
+	if (ret) {
+		atomic_set(&fl2k->lost_pixels, 1);
+		dev_info(&fl2k->usb_dev->dev, "wait for urb interrupted: %x available: %d\n",
+		       ret, fl2k->urbs.available);
+		goto error;
+	}
+
+	spin_lock_irqsave(&fl2k->urbs.lock, flags);
+
+	BUG_ON(list_empty(&fl2k->urbs.list)); /* reserved one with limit_sem */
+	entry = fl2k->urbs.list.next;
+	list_del_init(entry);
+	fl2k->urbs.available--;
+
+	spin_unlock_irqrestore(&fl2k->urbs.lock, flags);
+
+	unode = list_entry(entry, struct urb_node, entry);
+	urb = unode->urb;
+
+error:
+	return urb;
+}
+
+int fl2k_submit_urb(struct dev_ctx *fl2k, struct urb *urb, size_t len)
+{
+	int ret;
+
+	BUG_ON(len > fl2k->urbs.size);
+
+	urb->transfer_buffer_length = len; /* set to actual payload len */
+	ret = usb_submit_urb(urb, GFP_ATOMIC);
+	if (ret) {
+		fl2k_urb_completion(urb); /* because no one else will */
+		atomic_set(&fl2k->lost_pixels, 1);
+		dev_err(&fl2k->usb_dev->dev, "usb_submit_urb error %d ep %p\n",
+			ret, urb->ep);
+	}
+	return ret;
+}
+
+
 /////////////////////////////////////////////////////////////////////////////////
 // P R I V A T E
 /////////////////////////////////////////////////////////////////////////////////
@@ -131,6 +332,55 @@ exit:
     dbg_msg(TRACE_LEVEL_VERBOSE, DBG_RENDER, "<<<<");
     return ret_val;
 }
+int fl2k_render_hline(struct dev_ctx *fl2k, const char *front,
+		      u32 byte_offset, u32 byte_width)
+{
+	struct urb *urb;
+	char *buf;
+
+	urb = fl2k_get_urb(fl2k);
+	if (!urb)
+		return -1; /* lost_pixels is set */
+
+	buf = urb->transfer_buffer;
+
+	memcpy(buf, front+byte_offset, byte_width);
+	return fl2k_submit_urb(fl2k, urb, byte_width);
+}
+
+int fl2k_handle_damage(struct dev_ctx *fl2k,
+		       struct render_ctx *node)
+{
+	int y;
+	int ret;
+	struct primary_surface *surface = node->primary_surface;
+	int width = surface->width;
+	int height = surface->height;
+	struct urb *urb;
+
+	dev_info(&fl2k->usb_dev->dev, "fl2k handle damage for %d lines", height);
+	if (in_irq())
+		dev_info(&fl2k->usb_dev->dev, "ERROR fl2k_handle_damage in IRQ");
+
+	for (y = 0; y < height ; y++) {
+		const int line_offset = y * width *3;
+
+		ret = fl2k_render_hline(fl2k, surface->render_buffer,
+				        line_offset, width * 3);
+		if (ret < 0) {
+			dev_err(&fl2k->usb_dev->dev, "fl2k fl2k_handle_damage(), no URB");
+			return ret;
+		}
+	}
+
+	urb = fl2k_get_urb(fl2k);
+	if (!urb)
+		return -1; /* lost_pixels is set */
+
+	fl2k_submit_urb(fl2k, urb, 0);
+
+	return 0;
+}
 
 int
 fl2000_render_ctx_create(
@@ -244,6 +494,11 @@ fl2000_render_create(struct dev_ctx * dev_ctx)
 		goto exit;
 	}
 
+	if (!fl2k_alloc_urb_list(dev_ctx, WRITES_IN_FLIGHT, MAX_TRANSFER)) {
+		dev_err(&dev_ctx->usb_dev->dev, "udl_alloc_urb_list failed\n");
+		goto exit;
+	}
+
 	INIT_LIST_HEAD(&dev_ctx->render.surface_list);
 	spin_lock_init(&dev_ctx->render.surface_list_lock);
 	dev_ctx->render.surface_list_count = 0;
@@ -265,6 +520,9 @@ fl2000_render_destroy(struct dev_ctx * dev_ctx)
 	dbg_msg(TRACE_LEVEL_VERBOSE, DBG_RENDER, ">>>>");
 
 	fl2000_render_ctx_destroy(dev_ctx);
+
+	if (dev_ctx->urbs.count)
+		fl2k_free_urb_list(dev_ctx);
 
 	dbg_msg(TRACE_LEVEL_VERBOSE, DBG_RENDER, "<<<<");
 }
@@ -451,7 +709,7 @@ reschedule:
 		render_ctx = list_first_entry(
 			&staging_list, struct render_ctx, list_entry);
 		list_del(&render_ctx->list_entry);
-		ret_val = fl2000_render_with_busy_list_lock(dev_ctx, render_ctx);
+		ret_val = fl2k_handle_damage(dev_ctx, render_ctx);
 		if (ret_val < 0) {
 			dbg_msg(TRACE_LEVEL_ERROR, DBG_PNP,
 				"usb_submit_urb failed %d, "

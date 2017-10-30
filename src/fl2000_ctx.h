@@ -162,6 +162,22 @@ struct render {
 	uint32_t		green_light;
 };
 
+struct urb_node {
+	struct list_head entry;
+	struct dev_ctx *fl2k;
+	struct delayed_work release_urb_work;
+	struct urb *urb;
+};
+
+struct urb_list {
+	struct list_head list;
+	spinlock_t lock;
+	struct semaphore limit_sem;
+	int available;
+	int count;
+	size_t size;
+};
+
 struct dev_ctx {
 	struct usb_device*		usb_dev;
 	struct usb_device_descriptor	usb_dev_desc;
@@ -181,6 +197,8 @@ struct dev_ctx {
 	 * __sync_xxx_and_fetch. kind of sucks. we use our sync lock here.
 	 */
 	spinlock_t			count_lock;
+	struct urb_list urbs;
+	atomic_t lost_pixels; /* 1 = a render op failed. Need screen refresh */
 
 	/*
 	 * bulk out interface
