@@ -1,0 +1,10 @@
+*.o
+*.cmd
+*.ko
+*.cm
+Module.symvers
+modules.order
+.tmp_versions
+fl2000.mod.c
+sample/fltes
+
