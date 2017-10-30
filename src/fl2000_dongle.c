@@ -48,8 +48,6 @@ void fl2000_dongle_init_fl2000dx(struct dev_ctx * dev_ctx)
 	//
 	dev_ctx->registry.UsePollingMonitorConnection = 0;
 
-	dev_ctx->registry.FilterEdidTableEnable = EDID_FILTER_USB2_800_600_60HZ;
-
 	// Compression registry and flags.
 	//
 	dev_ctx->registry.CompressionEnable = 0;

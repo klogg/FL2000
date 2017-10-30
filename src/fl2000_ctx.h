@@ -55,7 +55,6 @@ struct resolution_entry
 
 struct registry
 {
-	uint32_t FilterEdidTableEnable;
 	uint32_t CurrentNumberOfDevices;
 	uint32_t UsePollingMonitorConnection;
 
