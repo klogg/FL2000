@@ -11,7 +11,7 @@
 #include "fl2000_include.h"
 
 #define BULK_SIZE		512
-#define MAX_TRANSFER		(PAGE_SIZE*16 - BULK_SIZE)
+#define MAX_TRANSFER		(64*1024)
 #define GET_URB_TIMEOUT		HZ
 #define WRITES_IN_FLIGHT	4
 
@@ -332,8 +332,8 @@ exit:
     dbg_msg(TRACE_LEVEL_VERBOSE, DBG_RENDER, "<<<<");
     return ret_val;
 }
-int fl2k_render_hline(struct dev_ctx *fl2k, const char *front,
-		      u32 byte_offset, u32 byte_width)
+int fl2k_render_hline(struct dev_ctx *fl2k, const char *src,
+		      u32 length)
 {
 	struct urb *urb;
 	char *buf;
@@ -344,41 +344,66 @@ int fl2k_render_hline(struct dev_ctx *fl2k, const char *front,
 
 	buf = urb->transfer_buffer;
 
-	memcpy(buf, front+byte_offset, byte_width);
-	return fl2k_submit_urb(fl2k, urb, byte_width);
+	memcpy(buf, src, length);
+	return fl2k_submit_urb(fl2k, urb, length);
 }
 
 int fl2k_handle_damage(struct dev_ctx *fl2k,
 		       struct render_ctx *node)
 {
-	int y;
 	int ret;
 	struct primary_surface *surface = node->primary_surface;
 	int width = surface->width;
 	int height = surface->height;
+	u32 length;
+	uint8_t *buf = surface->render_buffer;
 	struct urb *urb;
+	unsigned long start_jiffies;
+	unsigned long end_jiffies;
+	int msec;
 
+	start_jiffies = jiffies;
+
+#if 0	/* ULLI : this causes problems with logging via serial */
 	dev_info(&fl2k->usb_dev->dev, "fl2k handle damage for %d lines", height);
+#endif
 	if (in_irq())
 		dev_info(&fl2k->usb_dev->dev, "ERROR fl2k_handle_damage in IRQ");
 
-	for (y = 0; y < height ; y++) {
-		const int line_offset = y * width *3;
+	length = width * height * 3;
 
-		ret = fl2k_render_hline(fl2k, surface->render_buffer,
-				        line_offset, width * 3);
+	while (length >= MAX_TRANSFER) {
+		ret = fl2k_render_hline(fl2k, buf, MAX_TRANSFER);
+		if (ret < 0) {
+			dev_err(&fl2k->usb_dev->dev, "fl2k fl2k_handle_damage(), no URB");
+			return ret;
+		}
+		length -= MAX_TRANSFER;
+		buf += MAX_TRANSFER;
+	}
+
+	if (length > 0) {
+		ret = fl2k_render_hline(fl2k, buf, length);
 		if (ret < 0) {
 			dev_err(&fl2k->usb_dev->dev, "fl2k fl2k_handle_damage(), no URB");
 			return ret;
 		}
 	}
 
+	/* ULLI : send null size USB at the end */
 	urb = fl2k_get_urb(fl2k);
 	if (!urb)
 		return -1; /* lost_pixels is set */
 
 	fl2k_submit_urb(fl2k, urb, 0);
 
+	end_jiffies = jiffies;
+	msec =  jiffies_to_msecs(end_jiffies - start_jiffies);
+
+#if 0	/* : ULLI this causes problems with logging via serial */
+	dev_info(&fl2k->usb_dev->dev, "fl2k handle damage for %d lines msec : %d",
+		 height, msec);
+#endif
 	return 0;
 }
 
