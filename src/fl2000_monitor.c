@@ -628,6 +628,9 @@ fl2000_monitor_vga_status_handler(
 
 	dbg_msg(TRACE_LEVEL_VERBOSE, DBG_PNP, ">>>>");
 
+	dev_info(&dev_ctx->usb_dev->dev, "FL2000 interrupt status word %08x",
+		 raw_status);
+
 	vga_status = (struct vga_status *) &raw_status;
 	if (vga_status->connected) {
 		/*
