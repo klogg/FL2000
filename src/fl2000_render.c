@@ -11,7 +11,7 @@
 #include "fl2000_include.h"
 
 #define BULK_SIZE		512
-#define MAX_TRANSFER		(64*1024)
+#define MAX_TRANSFER		(58*1024)
 #define GET_URB_TIMEOUT		HZ
 #define WRITES_IN_FLIGHT	4
 
