@@ -221,31 +221,6 @@ bool fl2000_monitor_read_edid_dsub(struct dev_ctx * dev_ctx)
 
 	// EDID Header check.
 	//
-	read_status = fl2000_i2c_read(dev_ctx, I2C_ADDRESS_DSUB, 0, &data);
-	if (read_status < 0) {
-		dbg_msg(TRACE_LEVEL_ERROR, DBG_PNP,
-			"ERROR Read Edid table failed.");
-		goto exit;
-	}
-
-	if (EDID_HEADER_DWORD1 != data) {
-		dbg_msg(TRACE_LEVEL_ERROR, DBG_PNP,
-			"ERROR Read Edid data incorrect.");
-		goto exit;
-	}
-
-	read_status = fl2000_i2c_read(dev_ctx, I2C_ADDRESS_DSUB, 4, &data);
-	if (read_status < 0) {
-		dbg_msg(TRACE_LEVEL_ERROR, DBG_PNP,
-			"ERROR Read Edid table failed.");
-		goto exit;
-	}
-
-	if (EDID_HEADER_DWORD2 != data) {
-		dbg_msg(TRACE_LEVEL_ERROR, DBG_PNP,
-			"ERROR Read Edid data incorrect.");
-		goto exit;
-	}
 
 	for (index = 0; index < EDID_SIZE; index += 4) {
 		read_status = fl2000_i2c_read(
