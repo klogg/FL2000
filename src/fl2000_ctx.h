@@ -32,12 +32,6 @@ struct fl2000_timing_entry {
 	uint32_t 	v_total_time;
 	uint32_t 	v_sync_time;
 	uint32_t 	v_back_porch;
-	uint32_t 	isoch_num_of_pkt;
-	uint32_t 	isoch_td_size_in_kb;
-	uint32_t 	isoch_zero_bytes;
-	uint32_t 	itp_per_frame;
-	uint32_t 	num_of_idle;
-	uint32_t 	td_size;
 	uint32_t 	h_sync_reg_1;
 	uint32_t 	h_sync_reg_2;
 	uint32_t 	v_sync_reg_1;
