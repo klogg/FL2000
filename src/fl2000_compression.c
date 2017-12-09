@@ -24,10 +24,11 @@ GET_BYTES_PER_PIXEL(
 	uint32_t bytes_per_pixel;
 
 	switch (image_type) {
+#if 0	/* ULLI : disabled, code is kept here only for consistently */	
 	case OUTPUT_IMAGE_TYPE_RGB_8:
 		bytes_per_pixel = PIXEL_BYTE_1;
 		break;
-
+#endif
 	case OUTPUT_IMAGE_TYPE_RGB_16:
 		bytes_per_pixel = PIXEL_BYTE_2;
 		break;

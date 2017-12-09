@@ -74,7 +74,9 @@
 #define IS_DEVICE_USB3LINK(dev_ctx)             (USB3_BCD == dev_ctx->usb_dev_desc.bcdUSB)
 #define IS_DEVICE_USB2LINK(dev_ctx)             (!IS_DEVICE_USB3LINK(dev_ctx))
 
+#if 0
 #define OUTPUT_IMAGE_TYPE_RGB_8              	0
+#endif
 #define OUTPUT_IMAGE_TYPE_RGB_16             	1
 #define OUTPUT_IMAGE_TYPE_RGB_24             	2
 

@@ -370,12 +370,14 @@ bool fl2000_monitor_set_resolution(struct dev_ctx * dev_ctx, bool pll_changed)
 			fl2000_reg_bit_set(dev_ctx, REG_OFFSET_8004, 6);
 		}
 	}
+#if 0	/* ULLI : disabled, code is kept here only for consistently */	
 	else if (OUTPUT_IMAGE_TYPE_RGB_8 ==
 		 dev_ctx->vr_params.output_image_type) {
 		// Bit 25 for enable eight bit color mode.
 		//
 		fl2000_reg_bit_set(dev_ctx, REG_OFFSET_8004, 25);
 	}
+#endif
 
 	// External DAC Control
 	//

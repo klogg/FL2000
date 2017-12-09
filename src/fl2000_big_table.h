@@ -15,7 +15,7 @@
 
 #define VGA_BIG_TABLE_24BIT_R0		0
 #define VGA_BIG_TABLE_16BIT_R0		2
-#define VGA_BIG_TABLE_8BIT_R0		4
+
 
 struct resolution_entry const *
 fl2000_table_get_entry(

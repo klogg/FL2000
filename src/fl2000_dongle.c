@@ -153,9 +153,6 @@ fl2000_dongle_set_params(struct dev_ctx * dev_ctx, struct vr_params * vr_params)
 	}
 
 	switch (dev_ctx->vr_params.output_image_type) {
-	case OUTPUT_IMAGE_TYPE_RGB_8:
-		table_num = VGA_BIG_TABLE_8BIT_R0;
-		break;
 	case OUTPUT_IMAGE_TYPE_RGB_16:
 		table_num = VGA_BIG_TABLE_16BIT_R0;
 		break;
