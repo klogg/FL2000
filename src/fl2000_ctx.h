@@ -27,8 +27,6 @@ struct fl2000_timing_entry {
 	uint32_t 	height;
 	uint32_t 	freq;
 	uint32_t 	h_total_time;
-	uint32_t 	h_sync_time;
-	uint32_t 	h_back_porch;
 	uint32_t 	v_total_time;
 	uint32_t 	h_sync_reg_1;
 	uint32_t 	h_sync_reg_2;
