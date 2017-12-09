@@ -337,6 +337,46 @@ static void _fl2000_set_video_mode(struct dev_ctx * dev_ctx)
 	fl2000_reg_bit_set(dev_ctx, REG_OFFSET_8004, 7);
 }
 
+static void _fl2000_set_intrl_ctrl(struct dev_ctx * dev_ctx)
+{
+	// REG_OFFSET_803C
+	//
+
+	// Clear bit 22 - Disable BIA.
+	//
+	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_803C, 22);
+
+	// Clear bit 24 - Disable isoch error interrupt.
+	//
+	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_803C, 24);
+
+	// Clear bit 19,21 - Disable isoch auto recover.
+	//
+	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_803C, 19);
+	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_803C, 21);
+
+	// Clear bit 13 - Disable isoch feedback interrupt.
+	//
+	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_803C, 13);
+
+	// Clear bit 27:29 - End Of Frame Type
+	//
+	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_803C, 27);
+	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_803C, 28);
+	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_803C, 29);
+
+	if (dev_ctx->vr_params.end_of_frame_type == EOF_ZERO_LENGTH) {
+		// Zero Length Bulk.
+		//
+		fl2000_reg_bit_set(dev_ctx, REG_OFFSET_803C, 28);
+	}
+	else  {
+		// Pending Bit.
+		//
+		fl2000_reg_bit_set(dev_ctx, REG_OFFSET_803C, 29);
+	}
+}
+
 /////////////////////////////////////////////////////////////////////////////////
 // P U B L I C
 /////////////////////////////////////////////////////////////////////////////////
@@ -376,43 +416,7 @@ bool fl2000_monitor_set_resolution(struct dev_ctx * dev_ctx, bool pll_changed)
 		goto exit;
 	}
 
-	// REG_OFFSET_803C
-	//
-
-	// Clear bit 22 - Disable BIA.
-	//
-	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_803C, 22);
-
-	// Clear bit 24 - Disable isoch error interrupt.
-	//
-	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_803C, 24);
-
-	// Clear bit 19,21 - Disable isoch auto recover.
-	//
-	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_803C, 19);
-	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_803C, 21);
-
-	// Clear bit 13 - Disable isoch feedback interrupt.
-	//
-	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_803C, 13);
-
-	// Clear bit 27:29 - End Of Frame Type
-	//
-	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_803C, 27);
-	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_803C, 28);
-	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_803C, 29);
-
-	if (dev_ctx->vr_params.end_of_frame_type == EOF_ZERO_LENGTH) {
-		// Zero Length Bulk.
-		//
-		fl2000_reg_bit_set(dev_ctx, REG_OFFSET_803C, 28);
-	}
-	else  {
-		// Pending Bit.
-		//
-		fl2000_reg_bit_set(dev_ctx, REG_OFFSET_803C, 29);
-	}
-
+	_fl2000_set_intrl_ctrl(dev_ctx);
 	_fl2000_set_video_mode(dev_ctx);
 
 	// REG_OFFSET_8008
