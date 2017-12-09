@@ -180,11 +180,7 @@ fl2000_dongle_set_params(struct dev_ctx * dev_ctx, struct vr_params * vr_params)
 	dev_ctx->vr_params.v_sync_reg_2 = entry->v_sync_reg_2;
 
 	dev_ctx->vr_params.h_total_time = entry->h_total_time;
-	dev_ctx->vr_params.h_sync_time  = entry->h_sync_time;
-	dev_ctx->vr_params.h_back_porch = entry->h_back_porch;
 	dev_ctx->vr_params.v_total_time = entry->v_total_time;
-	dev_ctx->vr_params.v_sync_time  = entry->v_sync_time;
-	dev_ctx->vr_params.v_back_porch = entry->v_back_porch;
 
 	if (dev_ctx->hdmi_chip_found)
 	    fl2000_hdmi_compliance_tweak(dev_ctx);
