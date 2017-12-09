@@ -45,11 +45,6 @@ struct fl2000_timing_entry {
 	uint32_t 	iso_reg;
 	uint32_t 	bulk_fpga_pll;
 	uint32_t 	bulk_asic_pll;
-	uint32_t 	isoch_fpga_pll;
-	uint32_t 	isoch_asic_pll;
-	uint32_t 	isoch_fpga_h_sync_reg_1;
-	uint32_t 	isoch_asic_h_sync_reg_1;
-	uint32_t 	bus_interval_adjust;
 };
 
 struct registry
