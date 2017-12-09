@@ -17,7 +17,7 @@
 #define VGA_BIG_TABLE_16BIT_R0		2
 
 
-struct resolution_entry const *
+struct fl2000_timing_entry const *
 fl2000_table_get_entry(
 	uint32_t table_num,
 	uint32_t width,

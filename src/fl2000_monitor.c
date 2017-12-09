@@ -57,7 +57,7 @@ fl2000_monitor_resolution_in_white_table(
 	uint32_t freq)
 {
 	bool in_white_list;
-	const struct resolution_entry * entry;
+	const struct fl2000_timing_entry * entry;
 
 	if (freq != 60) {
 		in_white_list = false;

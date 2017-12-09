@@ -22,8 +22,7 @@ struct render_ctx;
  */
 #define	NUM_RENDER_ON_BUS	2
 
-struct resolution_entry
-{
+struct fl2000_timing_entry {
 	uint32_t 	width;
 	uint32_t 	height;
 	uint32_t 	freq;

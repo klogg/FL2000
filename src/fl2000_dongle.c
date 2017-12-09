@@ -110,7 +110,7 @@ fl2000_dongle_set_params(struct dev_ctx * dev_ctx, struct vr_params * vr_params)
 	uint32_t old_pll;
 	uint32_t new_pll;
 	bool pll_changed;
-	struct resolution_entry const * entry = NULL;
+	struct fl2000_timing_entry const * entry = NULL;
 	size_t table_num;
 
 	dbg_msg(TRACE_LEVEL_VERBOSE, DBG_PNP, ">>>>");
