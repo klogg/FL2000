@@ -243,6 +243,31 @@ exit:
     return ret_val;
 }
 
+
+/* ULLI : Fresco Logic does some verify after write monitor register
+ * add some helper to simplify/reduce code
+ */
+
+int _fl2000_reg_write_verify(struct dev_ctx * dev_ctx, uint32_t offset,
+			     uint32_t *data)
+{
+	int ret;
+	uint32_t read_back = 0;
+
+	ret = fl2000_reg_write(dev_ctx, offset, data);
+	if (ret < 0)
+		return ret;
+
+	ret = fl2000_reg_read(dev_ctx, offset, &read_back);
+	if (ret < 0)
+		return ret;
+
+	if (*data != read_back)
+		return -1;
+
+	return 0;
+}
+
 /////////////////////////////////////////////////////////////////////////////////
 // P U B L I C
 /////////////////////////////////////////////////////////////////////////////////
@@ -388,46 +413,33 @@ bool fl2000_monitor_set_resolution(struct dev_ctx * dev_ctx, bool pll_changed)
 	// REG_OFFSET_8008
 	//
 	data = dev_ctx->vr_params.h_sync_reg_1;
-	if (fl2000_reg_write(dev_ctx, REG_OFFSET_8008, &data)) {
-		data = 0;
-		fl2000_reg_read(dev_ctx, REG_OFFSET_8008, &data);
-		if (dev_ctx->vr_params.h_sync_reg_1 != data) {
-			ret_val = false;
-			goto exit;
-		}
+	if (_fl2000_reg_write_verify(dev_ctx, REG_OFFSET_8008, &data)) {
+		ret_val = false;
+		goto exit;
 	}
 
 	// REG_OFFSET_800C
 	//
 	data = dev_ctx->vr_params.h_sync_reg_2;
-	if (fl2000_reg_write(dev_ctx, REG_OFFSET_800C, &data)) {
-		fl2000_reg_read(dev_ctx, REG_OFFSET_800C, &data);
-		if (dev_ctx->vr_params.h_sync_reg_2 != data) {
-			ret_val = false;
-			goto exit;
-		}
+	if (_fl2000_reg_write_verify(dev_ctx, REG_OFFSET_800C, &data)) {
+		ret_val = false;
+		goto exit;
 	}
 
 	// REG_OFFSET_8010
 	//
 	data = dev_ctx->vr_params.v_sync_reg_1;
-	if (fl2000_reg_write(dev_ctx, REG_OFFSET_8010, &data)) {
-		fl2000_reg_read(dev_ctx, REG_OFFSET_8010, &data);
-		if (dev_ctx->vr_params.v_sync_reg_1 != data) {
-			ret_val = false;
-			goto exit;
-		}
+	if (_fl2000_reg_write_verify(dev_ctx, REG_OFFSET_8010, &data)) {
+		ret_val = false;
+		goto exit;
 	}
 
 	// REG_OFFSET_8014
 	//
 	data = dev_ctx->vr_params.v_sync_reg_2;
-	if (fl2000_reg_write(dev_ctx, REG_OFFSET_8014, &data)) {
-		fl2000_reg_read(dev_ctx, REG_OFFSET_8014, &data);
-		if ( dev_ctx->vr_params.v_sync_reg_2 != data ) {
-			ret_val = false;
-			goto exit;
-		}
+	if (_fl2000_reg_write_verify(dev_ctx, REG_OFFSET_8014, &data)) {
+		ret_val = false;
+		goto exit;
 	}
 
 	// REG_OFFSET_801C
