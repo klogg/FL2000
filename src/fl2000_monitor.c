@@ -268,6 +268,75 @@ int _fl2000_reg_write_verify(struct dev_ctx * dev_ctx, uint32_t offset,
 	return 0;
 }
 
+static void _fl2000_set_video_mode(struct dev_ctx * dev_ctx)
+{
+	// REG_OFFSET_8004
+	//
+
+	// Clear bit 28, Default setting.
+	//
+	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_8004, 28);
+
+	// Clear bit 6( 565 ) & 31( 555 ), 16 bit color mode.
+	//
+	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_8004, 6);
+	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_8004, 31);
+
+	// Clear bit 24, Disable compression.
+	//
+	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_8004, 24);
+
+	// Clear bit 25, Disable 8 bit color mode.
+	//
+	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_8004, 25);
+
+	// Clear bit 26, Disable 256 color palette.
+	//
+	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_8004, 26);
+
+	// Clear bit 27, Disable first byte mask.
+	//
+	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_8004, 27);
+
+	// Set bit 0, Reset VGA CCS.
+	//
+	fl2000_reg_bit_set(dev_ctx, REG_OFFSET_8004, 0);
+
+	if (dev_ctx->vr_params.use_compression) {
+		// Set bit 24, Enable compression mode.
+		//
+		fl2000_reg_bit_set(dev_ctx, REG_OFFSET_8004, 24);
+	}
+
+	if (OUTPUT_IMAGE_TYPE_RGB_16 == dev_ctx->vr_params.output_image_type) {
+		if (VR_16_BIT_COLOR_MODE_555 ==
+		    dev_ctx->vr_params.color_mode_16bit) {
+			// Bit 31 for 555 mode.
+			//
+			fl2000_reg_bit_set(dev_ctx, REG_OFFSET_8004, 31);
+		}
+		else {
+			// Bit 6 for 565 mode.
+			//
+			fl2000_reg_bit_set(dev_ctx, REG_OFFSET_8004, 6);
+		}
+	}
+#if 0	/* ULLI : disabled, code is kept here only for consistently */	
+	else if (OUTPUT_IMAGE_TYPE_RGB_8 ==
+		 dev_ctx->vr_params.output_image_type) {
+		// Bit 25 for enable eight bit color mode.
+		//
+		fl2000_reg_bit_set(dev_ctx, REG_OFFSET_8004, 25);
+	}
+#endif
+
+	// External DAC Control
+	//
+	// Set bit 7, Enable external DAC.
+	//
+	fl2000_reg_bit_set(dev_ctx, REG_OFFSET_8004, 7);
+}
+
 /////////////////////////////////////////////////////////////////////////////////
 // P U B L I C
 /////////////////////////////////////////////////////////////////////////////////
@@ -344,71 +413,7 @@ bool fl2000_monitor_set_resolution(struct dev_ctx * dev_ctx, bool pll_changed)
 		fl2000_reg_bit_set(dev_ctx, REG_OFFSET_803C, 29);
 	}
 
-	// REG_OFFSET_8004
-	//
-
-	// Clear bit 28, Default setting.
-	//
-	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_8004, 28);
-
-	// Clear bit 6( 565 ) & 31( 555 ), 16 bit color mode.
-	//
-	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_8004, 6);
-	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_8004, 31);
-
-	// Clear bit 24, Disable compression.
-	//
-	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_8004, 24);
-
-	// Clear bit 25, Disable 8 bit color mode.
-	//
-	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_8004, 25);
-
-	// Clear bit 26, Disable 256 color palette.
-	//
-	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_8004, 26);
-
-	// Clear bit 27, Disable first byte mask.
-	//
-	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_8004, 27);
-
-	// Set bit 0, Reset VGA CCS.
-	//
-	fl2000_reg_bit_set(dev_ctx, REG_OFFSET_8004, 0);
-
-	if (dev_ctx->vr_params.use_compression) {
-		// Set bit 24, Enable compression mode.
-		//
-		fl2000_reg_bit_set(dev_ctx, REG_OFFSET_8004, 24);
-	}
-
-	if (OUTPUT_IMAGE_TYPE_RGB_16 == dev_ctx->vr_params.output_image_type) {
-		if (VR_16_BIT_COLOR_MODE_555 ==
-		    dev_ctx->vr_params.color_mode_16bit) {
-			// Bit 31 for 555 mode.
-			//
-			fl2000_reg_bit_set(dev_ctx, REG_OFFSET_8004, 31);
-		}
-		else {
-			// Bit 6 for 565 mode.
-			//
-			fl2000_reg_bit_set(dev_ctx, REG_OFFSET_8004, 6);
-		}
-	}
-#if 0	/* ULLI : disabled, code is kept here only for consistently */	
-	else if (OUTPUT_IMAGE_TYPE_RGB_8 ==
-		 dev_ctx->vr_params.output_image_type) {
-		// Bit 25 for enable eight bit color mode.
-		//
-		fl2000_reg_bit_set(dev_ctx, REG_OFFSET_8004, 25);
-	}
-#endif
-
-	// External DAC Control
-	//
-	// Set bit 7, Enable external DAC.
-	//
-	fl2000_reg_bit_set(dev_ctx, REG_OFFSET_8004, 7);
+	_fl2000_set_video_mode(dev_ctx);
 
 	// REG_OFFSET_8008
 	//
