@@ -377,6 +377,49 @@ static void _fl2000_set_intrl_ctrl(struct dev_ctx * dev_ctx)
 	}
 }
 
+static int _fl2000_set_video_timing(struct dev_ctx * dev_ctx)
+{
+	uint32_t data;
+	bool ret_val;
+
+	ret_val = true;
+
+	// REG_OFFSET_8008
+	//
+	data = dev_ctx->vr_params.h_sync_reg_1;
+	if (_fl2000_reg_write_verify(dev_ctx, REG_OFFSET_8008, &data)) {
+		ret_val = false;
+		goto exit;
+	}
+
+	// REG_OFFSET_800C
+	//
+	data = dev_ctx->vr_params.h_sync_reg_2;
+	if (_fl2000_reg_write_verify(dev_ctx, REG_OFFSET_800C, &data)) {
+		ret_val = false;
+		goto exit;
+	}
+
+	// REG_OFFSET_8010
+	//
+	data = dev_ctx->vr_params.v_sync_reg_1;
+	if (_fl2000_reg_write_verify(dev_ctx, REG_OFFSET_8010, &data)) {
+		ret_val = false;
+		goto exit;
+	}
+
+	// REG_OFFSET_8014
+	//
+	data = dev_ctx->vr_params.v_sync_reg_2;
+	if (_fl2000_reg_write_verify(dev_ctx, REG_OFFSET_8014, &data)) {
+		ret_val = false;
+		goto exit;
+	}
+
+exit:
+	return ret_val;
+}
+
 /////////////////////////////////////////////////////////////////////////////////
 // P U B L I C
 /////////////////////////////////////////////////////////////////////////////////
@@ -418,38 +461,7 @@ bool fl2000_monitor_set_resolution(struct dev_ctx * dev_ctx, bool pll_changed)
 
 	_fl2000_set_intrl_ctrl(dev_ctx);
 	_fl2000_set_video_mode(dev_ctx);
-
-	// REG_OFFSET_8008
-	//
-	data = dev_ctx->vr_params.h_sync_reg_1;
-	if (_fl2000_reg_write_verify(dev_ctx, REG_OFFSET_8008, &data)) {
-		ret_val = false;
-		goto exit;
-	}
-
-	// REG_OFFSET_800C
-	//
-	data = dev_ctx->vr_params.h_sync_reg_2;
-	if (_fl2000_reg_write_verify(dev_ctx, REG_OFFSET_800C, &data)) {
-		ret_val = false;
-		goto exit;
-	}
-
-	// REG_OFFSET_8010
-	//
-	data = dev_ctx->vr_params.v_sync_reg_1;
-	if (_fl2000_reg_write_verify(dev_ctx, REG_OFFSET_8010, &data)) {
-		ret_val = false;
-		goto exit;
-	}
-
-	// REG_OFFSET_8014
-	//
-	data = dev_ctx->vr_params.v_sync_reg_2;
-	if (_fl2000_reg_write_verify(dev_ctx, REG_OFFSET_8014, &data)) {
-		ret_val = false;
-		goto exit;
-	}
+	_fl2000_set_video_timing(dev_ctx);
 
 	// REG_OFFSET_801C
 	//
