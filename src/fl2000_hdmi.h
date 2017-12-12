@@ -813,9 +813,6 @@ bool
 fl2000_hdmi_read_block(struct dev_ctx * dev_ctx, uint8_t block_id);
 
 void
-fl2000_hdmi_compliance_tweak(struct dev_ctx * dev_ctx);
-
-void
 fl2000_hdmi_init(struct dev_ctx * dev_ctx, bool resolution_change);
 
 //VOID

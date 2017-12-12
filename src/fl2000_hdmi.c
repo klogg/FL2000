@@ -1967,24 +1967,6 @@ exit:
 }
 
 void
-fl2000_hdmi_compliance_tweak(struct dev_ctx * dev_ctx)
-{
-        if (dev_ctx->vr_params.width == 640 &&
-            dev_ctx->vr_params.height == 480 &&
-            dev_ctx->vr_params.freq == 60) {
-                dev_ctx->vr_params.h_sync_reg_2 = 0x600091;
-                dev_ctx->vr_params.v_sync_reg_2 = 0x2420024;
-        } else if (dev_ctx->vr_params.width == 1280 &&
-                   dev_ctx->vr_params.height == 720 &&
-                   dev_ctx->vr_params.freq == 60) {
-                dev_ctx->vr_params.v_sync_reg_2 = 0x1A5001A;
-        } else {
-                // No adjustment.
-                //
-        }
-}
-
-void
 fl2000_hdmi_generate_ddc_sclk(struct dev_ctx * dev_ctx)
 {
         bool is_good;
