@@ -11,8 +11,6 @@
 #ifndef _FL2000_MONITOR_H_
 #define _FL2000_MONITOR_H_
 
-bool fl2000_monitor_set_resolution(struct dev_ctx * dev_ctx, bool pll_changed);
-
 void fl2000_monitor_read_edid(struct dev_ctx * dev_ctx);
 
 bool fl2000_monitor_resolution_in_white_table(
@@ -21,7 +19,7 @@ bool fl2000_monitor_resolution_in_white_table(
 	uint32_t freq);
 
 void fl2000_monitor_manual_check_connection(struct dev_ctx * dev_ctx);
-
+int fl2000_dongle_set_params(struct dev_ctx * dev_ctx, struct vr_params * vr_params);
 void fl2000_monitor_vga_status_handler(
 	struct dev_ctx * dev_ctx, uint32_t raw_status
 	);

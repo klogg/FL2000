@@ -440,7 +440,7 @@ exit:
 /////////////////////////////////////////////////////////////////////////////////
 //
 
-bool fl2000_monitor_set_resolution(struct dev_ctx * dev_ctx, bool pll_changed)
+static bool fl2000_monitor_set_resolution(struct dev_ctx * dev_ctx, bool pll_changed)
 {
 	uint32_t data;
 	bool ret_val;
@@ -497,6 +497,117 @@ exit:
     dbg_msg(TRACE_LEVEL_VERBOSE, DBG_PNP, "<<<<");
 
     return ret_val;
+}
+
+int
+fl2000_dongle_set_params(struct dev_ctx * dev_ctx, struct vr_params * vr_params)
+{
+	int ret_val;
+	bool ret;
+	uint32_t old_pll;
+	uint32_t new_pll;
+	bool pll_changed;
+	struct fl2000_timing_entry const * entry = NULL;
+	size_t table_num;
+
+	dbg_msg(TRACE_LEVEL_VERBOSE, DBG_PNP, ">>>>");
+
+	// FileIO thread references to parameters and need to avoid concurrent access.
+	//
+	ret_val = 0;
+	pll_changed = false;
+
+	// Set PLL register takes long time to stabilize, therefore, we set that only
+	// found it's different to previous setting.
+	//
+	old_pll = dev_ctx->vr_params.pll_reg;
+	memcpy(&dev_ctx->vr_params, vr_params, sizeof(struct vr_params));
+
+	dev_ctx->vr_params.pll_reg = old_pll;
+	dev_ctx->vr_params.end_of_frame_type = EOF_ZERO_LENGTH;
+
+	if (dev_ctx->registry.CompressionEnable ||
+	    vr_params->use_compression) {
+		dev_ctx->vr_params.use_compression = 1;
+
+		dev_ctx->vr_params.compression_mask_index_min = COMPRESSION_MASK_INDEX_MINIMUM;
+		dev_ctx->vr_params.compression_mask_index_max = COMPRESSION_MASK_INDEX_MAXIMUM;
+
+		if (dev_ctx->registry.Usb2PixelFormatTransformCompressionEnable) {
+			// Bug#6346: Need more aggressive compression mask.
+			//
+			dev_ctx->vr_params.compression_mask = COMPRESSION_MASK_13_BIT_VALUE;
+			dev_ctx->vr_params.compression_mask_index = COMPRESSION_MASK_13_BIT_INDEX;
+
+			// Output is RGB555, and need at most the mask.
+			//
+			dev_ctx->vr_params.compression_mask_index_min = COMPRESSION_MASK_15_BIT_INDEX;
+		}
+		else {
+			dev_ctx->vr_params.compression_mask = COMPRESSION_MASK_23_BIT_VALUE;
+			dev_ctx->vr_params.compression_mask_index = COMPRESSION_MASK_23_BIT_INDEX;
+		}
+	}
+
+	switch (dev_ctx->vr_params.output_image_type) {
+	case OUTPUT_IMAGE_TYPE_RGB_16:
+		table_num = VGA_BIG_TABLE_16BIT_R0;
+		break;
+	case OUTPUT_IMAGE_TYPE_RGB_24:
+	default:
+		table_num = VGA_BIG_TABLE_24BIT_R0;
+		break;
+	}
+
+	entry = fl2000_table_get_entry(
+		table_num,
+		dev_ctx->vr_params.width,
+		dev_ctx->vr_params.height,
+		dev_ctx->vr_params.freq);
+	if (entry == NULL) {
+			dbg_msg(TRACE_LEVEL_ERROR, DBG_PNP,
+				"ERROR fl2000_table_get_entry failed.");
+			ret_val = -EINVAL;
+			goto exit;
+		}
+
+	dev_ctx->vr_params.h_sync_reg_1 = entry->h_sync_reg_1;
+	dev_ctx->vr_params.h_sync_reg_2 = entry->h_sync_reg_2;
+	dev_ctx->vr_params.v_sync_reg_1 = entry->v_sync_reg_1;
+	dev_ctx->vr_params.v_sync_reg_2 = entry->v_sync_reg_2;
+
+	dev_ctx->vr_params.h_total_time = entry->h_total_time;
+	dev_ctx->vr_params.v_total_time = entry->v_total_time;
+
+	new_pll = entry->bulk_asic_pll;
+
+	if (new_pll != dev_ctx->vr_params.pll_reg) {
+	    pll_changed = true;
+	    dev_ctx->vr_params.pll_reg = new_pll;
+	}
+
+	ret = fl2000_monitor_set_resolution(dev_ctx, pll_changed);
+	if (!ret) {
+		dbg_msg(TRACE_LEVEL_ERROR, DBG_PNP,
+			"[ERR] fl2000_monitor_set_resolution failed?");
+		ret_val = -EIO;
+		goto exit;
+	}
+
+	// Select Interface
+	//
+	ret_val = fl2000_dev_select_interface(dev_ctx);
+	if (ret_val < 0) {
+		dbg_msg(TRACE_LEVEL_ERROR, DBG_PNP,
+			"ERROR fl2000_dev_select_interface failed?");
+		goto exit;
+	}
+
+	dev_ctx->usb_pipe_bulk_out = usb_sndbulkpipe(dev_ctx->usb_dev, 1);
+
+exit:
+	dbg_msg(TRACE_LEVEL_VERBOSE, DBG_PNP, "<<<<");
+	return (ret_val);
 }
 
 void fl2000_monitor_read_edid(struct dev_ctx * dev_ctx)
