@@ -377,13 +377,14 @@ static void _fl2000_set_intrl_ctrl(struct dev_ctx * dev_ctx)
 	}
 }
 
-static int _fl2000_set_video_timing(struct dev_ctx * dev_ctx)
+static int _fl2000_set_video_timing(struct dev_ctx * dev_ctx,
+				    struct fl2000_timing_entry const * entry)
 {
 	bool ret_val;
-	uint32_t h_sync_reg_1 = dev_ctx->vr_params.h_sync_reg_1;
-	uint32_t h_sync_reg_2 = dev_ctx->vr_params.h_sync_reg_2;
-	uint32_t v_sync_reg_1 = dev_ctx->vr_params.v_sync_reg_1;
-	uint32_t v_sync_reg_2 = dev_ctx->vr_params.v_sync_reg_2;
+	uint32_t h_sync_reg_1 = entry->h_sync_reg_1;
+	uint32_t h_sync_reg_2 = entry->h_sync_reg_2;
+	uint32_t v_sync_reg_1 = entry->v_sync_reg_1;
+	uint32_t v_sync_reg_2 = entry->v_sync_reg_2;
 
 	ret_val = true;
 
@@ -440,7 +441,8 @@ exit:
 /////////////////////////////////////////////////////////////////////////////////
 //
 
-static bool fl2000_monitor_set_resolution(struct dev_ctx * dev_ctx, bool pll_changed)
+static bool fl2000_monitor_set_resolution(struct dev_ctx * dev_ctx, bool pll_changed,
+					  struct fl2000_timing_entry const * entry)
 {
 	uint32_t data;
 	bool ret_val;
@@ -476,7 +478,7 @@ static bool fl2000_monitor_set_resolution(struct dev_ctx * dev_ctx, bool pll_cha
 
 	_fl2000_set_intrl_ctrl(dev_ctx);
 	_fl2000_set_video_mode(dev_ctx);
-	_fl2000_set_video_timing(dev_ctx);
+	_fl2000_set_video_timing(dev_ctx, entry);
 
 	// REG_OFFSET_801C
 	//
@@ -571,11 +573,6 @@ fl2000_dongle_set_params(struct dev_ctx * dev_ctx, struct vr_params * vr_params)
 			goto exit;
 		}
 
-	dev_ctx->vr_params.h_sync_reg_1 = entry->h_sync_reg_1;
-	dev_ctx->vr_params.h_sync_reg_2 = entry->h_sync_reg_2;
-	dev_ctx->vr_params.v_sync_reg_1 = entry->v_sync_reg_1;
-	dev_ctx->vr_params.v_sync_reg_2 = entry->v_sync_reg_2;
-
 	dev_ctx->vr_params.h_total_time = entry->h_total_time;
 	dev_ctx->vr_params.v_total_time = entry->v_total_time;
 
@@ -586,7 +583,7 @@ fl2000_dongle_set_params(struct dev_ctx * dev_ctx, struct vr_params * vr_params)
 	    dev_ctx->vr_params.pll_reg = new_pll;
 	}
 
-	ret = fl2000_monitor_set_resolution(dev_ctx, pll_changed);
+	ret = fl2000_monitor_set_resolution(dev_ctx, pll_changed, entry);
 	if (!ret) {
 		dbg_msg(TRACE_LEVEL_ERROR, DBG_PNP,
 			"[ERR] fl2000_monitor_set_resolution failed?");
