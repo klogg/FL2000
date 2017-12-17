@@ -379,8 +379,11 @@ static void _fl2000_set_intrl_ctrl(struct dev_ctx * dev_ctx)
 
 static int _fl2000_set_video_timing(struct dev_ctx * dev_ctx)
 {
-	uint32_t data;
 	bool ret_val;
+	uint32_t h_sync_reg_1 = dev_ctx->vr_params.h_sync_reg_1;
+	uint32_t h_sync_reg_2 = dev_ctx->vr_params.h_sync_reg_2;
+	uint32_t v_sync_reg_1 = dev_ctx->vr_params.v_sync_reg_1;
+	uint32_t v_sync_reg_2 = dev_ctx->vr_params.v_sync_reg_2;
 
 	ret_val = true;
 
@@ -388,12 +391,12 @@ static int _fl2000_set_video_timing(struct dev_ctx * dev_ctx)
 	        if (dev_ctx->vr_params.width == 640 &&
 	            dev_ctx->vr_params.height == 480 &&
 	            dev_ctx->vr_params.freq == 60) {
-	                dev_ctx->vr_params.h_sync_reg_2 = 0x600091;
-	                dev_ctx->vr_params.v_sync_reg_2 = 0x2420024;
+			h_sync_reg_2 = 0x600091;
+	                v_sync_reg_2 = 0x2420024;
 	        } else if (dev_ctx->vr_params.width == 1280 &&
 	                   dev_ctx->vr_params.height == 720 &&
 	                   dev_ctx->vr_params.freq == 60) {
-	                dev_ctx->vr_params.v_sync_reg_2 = 0x1A5001A;
+	                v_sync_reg_2 = 0x1A5001A;
 	        } else {
 	                // No adjustment.
 	                //
@@ -402,32 +405,28 @@ static int _fl2000_set_video_timing(struct dev_ctx * dev_ctx)
 
 	// REG_OFFSET_8008
 	//
-	data = dev_ctx->vr_params.h_sync_reg_1;
-	if (_fl2000_reg_write_verify(dev_ctx, REG_OFFSET_8008, &data)) {
+	if (_fl2000_reg_write_verify(dev_ctx, REG_OFFSET_8008, &h_sync_reg_1)) {
 		ret_val = false;
 		goto exit;
 	}
 
 	// REG_OFFSET_800C
 	//
-	data = dev_ctx->vr_params.h_sync_reg_2;
-	if (_fl2000_reg_write_verify(dev_ctx, REG_OFFSET_800C, &data)) {
+	if (_fl2000_reg_write_verify(dev_ctx, REG_OFFSET_800C, &h_sync_reg_2)) {
 		ret_val = false;
 		goto exit;
 	}
 
 	// REG_OFFSET_8010
 	//
-	data = dev_ctx->vr_params.v_sync_reg_1;
-	if (_fl2000_reg_write_verify(dev_ctx, REG_OFFSET_8010, &data)) {
+	if (_fl2000_reg_write_verify(dev_ctx, REG_OFFSET_8010, &v_sync_reg_1)) {
 		ret_val = false;
 		goto exit;
 	}
 
 	// REG_OFFSET_8014
 	//
-	data = dev_ctx->vr_params.v_sync_reg_2;
-	if (_fl2000_reg_write_verify(dev_ctx, REG_OFFSET_8014, &data)) {
+	if (_fl2000_reg_write_verify(dev_ctx, REG_OFFSET_8014, &v_sync_reg_2)) {
 		ret_val = false;
 		goto exit;
 	}
