@@ -299,32 +299,30 @@ fl2000_render_with_busy_list_lock(
 	    goto exit;
 	}
 
-	if ((dev_ctx->vr_params.end_of_frame_type == EOF_ZERO_LENGTH)) {
-		spin_lock_irqsave(&dev_ctx->count_lock, flags);
-		render_ctx->pending_count++;
-		spin_unlock_irqrestore(&dev_ctx->count_lock, flags);
-		ret_val = usb_submit_urb(
-			render_ctx->zero_length_urb, GFP_ATOMIC);
-		if (ret_val != 0) {
-			dbg_msg(TRACE_LEVEL_ERROR, DBG_PNP,
-				"[ERR] zero_length_urb submit fails with %d.",
-				ret_val);
+	spin_lock_irqsave(&dev_ctx->count_lock, flags);
+	render_ctx->pending_count++;
+	spin_unlock_irqrestore(&dev_ctx->count_lock, flags);
+	ret_val = usb_submit_urb(
+		render_ctx->zero_length_urb, GFP_ATOMIC);
+	if (ret_val != 0) {
+		dbg_msg(TRACE_LEVEL_ERROR, DBG_PNP,
+			"[ERR] zero_length_urb submit fails with %d.",
+			ret_val);
 
+		/*
+		 * the main_urb is already schedule, we wait until
+		 * the completion to move the render_ctx to free_list
+		 */
+		spin_lock_irqsave(&dev_ctx->count_lock, flags);
+		render_ctx->pending_count--;
+		spin_unlock_irqrestore(&dev_ctx->count_lock, flags);
+		if (-ENODEV == ret_val || -ENOENT == ret_val) {
 			/*
-			 * the main_urb is already schedule, we wait until
-			 * the completion to move the render_ctx to free_list
+			 * mark the fl2000 device gone
 			 */
-			spin_lock_irqsave(&dev_ctx->count_lock, flags);
-			render_ctx->pending_count--;
-			spin_unlock_irqrestore(&dev_ctx->count_lock, flags);
-			if (-ENODEV == ret_val || -ENOENT == ret_val) {
-				/*
-				 * mark the fl2000 device gone
-				 */
-				dev_ctx->dev_gone = 1;
-			}
-			goto exit;
+			dev_ctx->dev_gone = 1;
 		}
+		goto exit;
 	}
 
 exit:

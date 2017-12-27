@@ -63,7 +63,6 @@ struct vr_params
 	uint32_t	pll_reg;
 	uint32_t	input_bytes_per_pixel;
 	uint32_t	output_image_type;
-	uint32_t	end_of_frame_type;
 	uint32_t	color_mode_16bit;
 };
 

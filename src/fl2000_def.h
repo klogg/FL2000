@@ -88,9 +88,6 @@
 #define PIXEL_BYTE_2                            2
 #define PIXEL_BYTE_3                            3
 
-#define EOF_PENDING_BIT       			0
-#define EOF_ZERO_LENGTH       			1
-
 #define VR_16_BIT_COLOR_MODE_565                0
 #define VR_16_BIT_COLOR_MODE_555                1
 

@@ -365,16 +365,20 @@ static void _fl2000_set_intrl_ctrl(struct dev_ctx * dev_ctx)
 	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_803C, 28);
 	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_803C, 29);
 
+#if 0	/* ULLI : remains only as remark */
 	if (dev_ctx->vr_params.end_of_frame_type == EOF_ZERO_LENGTH) {
 		// Zero Length Bulk.
 		//
+#endif
 		fl2000_reg_bit_set(dev_ctx, REG_OFFSET_803C, 28);
+#if 0	/* ULLI : remains only as remark */
 	}
 	else  {
 		// Pending Bit.
 		//
 		fl2000_reg_bit_set(dev_ctx, REG_OFFSET_803C, 29);
 	}
+#endif
 }
 
 static int _fl2000_set_video_timing(struct dev_ctx * dev_ctx,
@@ -520,7 +524,6 @@ fl2000_dongle_set_params(struct dev_ctx * dev_ctx, struct vr_params * vr_params)
 	memcpy(&dev_ctx->vr_params, vr_params, sizeof(struct vr_params));
 
 	dev_ctx->vr_params.pll_reg = old_pll;
-	dev_ctx->vr_params.end_of_frame_type = EOF_ZERO_LENGTH;
 
 	if (dev_ctx->registry.CompressionEnable ||
 	    vr_params->use_compression) {

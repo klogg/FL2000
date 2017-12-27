@@ -246,17 +246,15 @@ void fl2000_bulk_prepare_urb(
 		fl2000_bulk_main_completion,
 		render_ctx);
 
-	if (dev_ctx->vr_params.end_of_frame_type == EOF_ZERO_LENGTH) {
-		usb_init_urb(render_ctx->zero_length_urb);
-		usb_fill_bulk_urb(
-			render_ctx->zero_length_urb,
-			dev_ctx->usb_dev,
-			dev_ctx->usb_pipe_bulk_out,
-			NULL,
-			0,
-			fl2000_bulk_zero_length_completion,
-			render_ctx);
-	}
+	usb_init_urb(render_ctx->zero_length_urb);
+	usb_fill_bulk_urb(
+		render_ctx->zero_length_urb,
+		dev_ctx->usb_dev,
+		dev_ctx->usb_pipe_bulk_out,
+		NULL,
+		0,
+		fl2000_bulk_zero_length_completion,
+		render_ctx);
 }
 
 // eof: fl2000_bulk.c
