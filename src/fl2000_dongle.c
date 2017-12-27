@@ -61,20 +61,26 @@ void fl2000_dongle_init_fl2000dx(struct dev_ctx * dev_ctx)
 
 void fl2000_dongle_u1u2_setup(struct dev_ctx * dev_ctx, bool enable)
 {
+	int ret;
+	uint32_t value;
+
+	ret = fl2000_reg_read(dev_ctx, REG_OFFSET_0070, &value);
+	if (ret < 0)
+		return;
+
 	if (enable) {
 		// Set 0x0070 bit 20 = 0, accept U1.
 		// Set 0x0070 bit 19 = 0, accept U2.
 		//
-		fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_0070, 20);
-		fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_0070, 19);
-	}
-	else {
+		value &= ~(BIT(20) | BIT(19));
+	} else {
 		// Set 0x0070 bit 20 = 1, reject U1.
 		// Set 0x0070 bit 19 = 1, reject U2.
 		//
-		fl2000_reg_bit_set(dev_ctx, REG_OFFSET_0070, 20);
-		fl2000_reg_bit_set(dev_ctx, REG_OFFSET_0070, 19);
+		value |= BIT(20) | BIT(19);
 	}
+
+	fl2000_reg_write(dev_ctx, REG_OFFSET_0070, &value);
 }
 
 void fl2000_dongle_reset(struct dev_ctx * dev_ctx)
