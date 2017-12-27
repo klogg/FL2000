@@ -299,8 +299,7 @@ fl2000_render_with_busy_list_lock(
 	    goto exit;
 	}
 
-	if ((dev_ctx->vr_params.end_of_frame_type == EOF_ZERO_LENGTH) &&
-	    (VR_TRANSFER_PIPE_BULK == dev_ctx->vr_params.trasfer_pipe)) {
+	if ((dev_ctx->vr_params.end_of_frame_type == EOF_ZERO_LENGTH)) {
 		spin_lock_irqsave(&dev_ctx->count_lock, flags);
 		render_ctx->pending_count++;
 		spin_unlock_irqrestore(&dev_ctx->count_lock, flags);

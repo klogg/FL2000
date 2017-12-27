@@ -84,10 +84,6 @@
 #define VR_USB_LINKUP_TYPE_USB2             	1
 #define VR_USB_LINKUP_TYPE_USB3             	2
 
-#define VR_TRANSFER_PIPE_BULK                	0
-#define VR_TRANSFER_PIPE_ISOCH               	1
-#define VR_TRANSFER_PIPE_MAX                 	2
-
 #define PIXEL_BYTE_1                            1
 #define PIXEL_BYTE_2                            2
 #define PIXEL_BYTE_3                            3

@@ -51,7 +51,6 @@ struct vr_params
 	uint32_t	freq;
 	uint32_t	h_total_time;
 	uint32_t	v_total_time;
-	uint32_t	trasfer_pipe;
 
 	// Compression.
 	//

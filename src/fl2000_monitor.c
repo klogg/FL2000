@@ -454,13 +454,7 @@ static bool fl2000_monitor_set_resolution(struct dev_ctx * dev_ctx, bool pll_cha
 		// REG_OFFSET_802C
 		//
 		data = dev_ctx->vr_params.pll_reg;
-		if (fl2000_reg_write(dev_ctx, REG_OFFSET_802C, &data)) {
-			// From Ni Jie, only isoch transfer needs to wait until
-			// PLL stabilized.
-			if (VR_TRANSFER_PIPE_ISOCH ==
-			    dev_ctx->vr_params.trasfer_pipe)
-				DELAY_MS(1000);
-		}
+		fl2000_reg_write(dev_ctx, REG_OFFSET_802C, &data);
 	}
 
 	// REG_OFFSET_8048 ( 0x8048 )< bit 15 > = 1, app reset, self clear.

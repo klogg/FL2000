@@ -163,8 +163,6 @@ fl2000_set_display_mode(
 		break;
 	}
 
-	vr_params.trasfer_pipe = VR_TRANSFER_PIPE_BULK;
-
 	if (IS_DEVICE_USB2LINK(dev_ctx)) {
 		/*
 		 * Considering physical bw limitation, force frequency to 60Hz
