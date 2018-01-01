@@ -347,46 +347,53 @@ static void _fl2000_set_video_mode(struct dev_ctx * dev_ctx)
 
 static void _fl2000_set_intrl_ctrl(struct dev_ctx * dev_ctx)
 {
+	int ret;
+	uint32_t value;
+
 	// REG_OFFSET_803C
 	//
 
+	ret = fl2000_reg_read(dev_ctx, REG_OFFSET_803C, &value);
+	if (ret < 0)
+		return;
+
 	// Clear bit 22 - Disable BIA.
-	//
-	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_803C, 22);
+	
+	value &= ~BIT(22);
 
 	// Clear bit 24 - Disable isoch error interrupt.
-	//
-	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_803C, 24);
+
+	value &= ~BIT(24);
 
 	// Clear bit 19,21 - Disable isoch auto recover.
-	//
-	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_803C, 19);
-	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_803C, 21);
+
+	value &= ~(BIT(21) | BIT(19));
 
 	// Clear bit 13 - Disable isoch feedback interrupt.
-	//
-	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_803C, 13);
+
+	value &= ~BIT(13);
 
 	// Clear bit 27:29 - End Of Frame Type
-	//
-	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_803C, 27);
-	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_803C, 28);
-	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_803C, 29);
+
+	value &= ~(BIT(29) | BIT(28) | BIT(27));
 
 #if 0	/* ULLI : remains only as remark */
 	if (dev_ctx->vr_params.end_of_frame_type == EOF_ZERO_LENGTH) {
 		// Zero Length Bulk.
 		//
 #endif
-		fl2000_reg_bit_set(dev_ctx, REG_OFFSET_803C, 28);
+		value |= BIT(28);
 #if 0	/* ULLI : remains only as remark */
 	}
 	else  {
 		// Pending Bit.
 		//
-		fl2000_reg_bit_set(dev_ctx, REG_OFFSET_803C, 29);
+		value |= BIT(29);
 	}
 #endif
+
+	ret = fl2000_reg_write(dev_ctx, REG_OFFSET_803C, &value);
+
 }
 
 static int _fl2000_set_video_timing(struct dev_ctx * dev_ctx,
