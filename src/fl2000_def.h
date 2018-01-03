@@ -71,9 +71,6 @@
 #define EDID_SIZE                          	128
 #define NUM_OF_RENDER_CTX                       4
 
-#define IS_DEVICE_USB3LINK(dev_ctx)             (USB3_BCD == dev_ctx->usb_dev_desc.bcdUSB)
-#define IS_DEVICE_USB2LINK(dev_ctx)             (!IS_DEVICE_USB3LINK(dev_ctx))
-
 #if 0
 #define OUTPUT_IMAGE_TYPE_RGB_8              	0
 #endif
