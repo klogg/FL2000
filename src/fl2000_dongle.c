@@ -14,29 +14,25 @@
 // P R I V A T E
 /////////////////////////////////////////////////////////////////////////////////
 //
-void
-fl2000_dongle_i2c_detection_enable(struct dev_ctx * dev_ctx)
-{
-	// Enable I2C VGA Detection
-	//
-	fl2000_reg_bit_set(dev_ctx, REG_OFFSET_8020, 30);
-	DELAY_MS(DELAY_FOR_I2C_CONNECTION_ENABLE);
-}
-
-void
-fl2000_dongle_ext_monitor_detect_enable(struct dev_ctx * dev_ctx)
-{
-	// Enable external monitor detection.
-	//
-	fl2000_reg_bit_set(dev_ctx, REG_OFFSET_8020, 28);
-}
 
 void fl2000_dongle_init_fl2000dx(struct dev_ctx * dev_ctx)
 {
 	// Enable interrupt for I2C detection and external monitor.
 	//
-	fl2000_dongle_i2c_detection_enable(dev_ctx);
-	fl2000_dongle_ext_monitor_detect_enable(dev_ctx);
+
+	int ret;
+	uint32_t value;
+
+	/* ULLI : I2C interrupt controller init, should be done in i2c driver */
+
+	ret = fl2000_reg_read(dev_ctx, REG_OFFSET_8020, &value);
+	if (ret < 0)
+		return;
+
+	value |= BIT(30);	/* Enable I2C VGA Detection */
+	value |= BIT(28);	/* Enable external monitor detection */
+
+	fl2000_reg_write(dev_ctx, REG_OFFSET_8020, &value);
 
 	// BUG: We turn-off hardward reset for now.
 	// But we do need it for resolve accumulate interrupt packet issue.
