@@ -38,7 +38,6 @@ struct fl2000_timing_entry {
 struct registry
 {
 	uint32_t CurrentNumberOfDevices;
-	uint32_t UsePollingMonitorConnection;
 
 	uint32_t CompressionEnable;
 	uint32_t Usb2PixelFormatTransformCompressionEnable;

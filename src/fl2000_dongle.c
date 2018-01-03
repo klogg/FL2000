@@ -47,11 +47,6 @@ void fl2000_dongle_init_fl2000dx(struct dev_ctx * dev_ctx)
 
 	fl2000_reg_write(dev_ctx, REG_OFFSET_8088, &value);
 
-
-	// Disable polling for FL2000DX.
-	//
-	dev_ctx->registry.UsePollingMonitorConnection = 0;
-
 	// Compression registry and flags.
 	//
 	dev_ctx->registry.CompressionEnable = 0;
