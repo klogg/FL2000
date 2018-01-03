@@ -172,7 +172,7 @@ fl2000_set_display_mode(
 		break;
 	}
 
-	if (IS_DEVICE_USB2LINK(dev_ctx)) {
+	if (dev_ctx->usb_dev->speed < USB_SPEED_SUPER) {
 		/*
 		 * Considering physical bw limitation, force frequency to 60Hz
 		 * once user select higher frequency from panel.
