@@ -38,7 +38,15 @@ void fl2000_dongle_init_fl2000dx(struct dev_ctx * dev_ctx)
 	// But we do need it for resolve accumulate interrupt packet issue.
 	// Got debug with NJ for this problem.
 	//
-	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_8088, 10);
+
+	ret = fl2000_reg_read(dev_ctx, REG_OFFSET_8088, &value);
+	if (ret < 0)
+		return;
+
+	value &= BIT(10);	/* BUG: We turn-off hardward reset for now. */
+
+	fl2000_reg_write(dev_ctx, REG_OFFSET_8088, &value);
+
 
 	// Disable polling for FL2000DX.
 	//
