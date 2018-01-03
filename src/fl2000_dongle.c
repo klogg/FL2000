@@ -84,13 +84,17 @@ void fl2000_dongle_u1u2_setup(struct dev_ctx * dev_ctx, bool enable)
 
 void fl2000_dongle_reset(struct dev_ctx * dev_ctx)
 {
-	dbg_msg(TRACE_LEVEL_VERBOSE, DBG_INIT, ">>>>");
+	int ret;
+	uint32_t value;
+
+	ret = fl2000_reg_read(dev_ctx, REG_OFFSET_8048, &value);
+	if (ret < 0)
+		return;
 
 	// REG_OFFSET_8048(0x8048)< bit 15 > = 1, app reset, self clear.
 	//
-	fl2000_reg_bit_set(dev_ctx, REG_OFFSET_8048, 15);
-
-	dbg_msg(TRACE_LEVEL_VERBOSE, DBG_INIT, "<<<<");
+	value |= BIT(15);
+	fl2000_reg_write(dev_ctx, REG_OFFSET_0070, &value);
 }
 
 void fl2000_dongle_stop(struct dev_ctx * dev_ctx)
