@@ -359,36 +359,36 @@ static void _fl2000_set_intrl_ctrl(struct dev_ctx * dev_ctx)
 
 	// Clear bit 22 - Disable BIA.
 	
-	value &= ~BIT(22);
+	value &= ~FL2K_USB_BIA;
 
 	// Clear bit 24 - Disable isoch error interrupt.
 
-	value &= ~BIT(24);
+	value &= ~FL2K_USB_ISO_ERR_INT;
 
 	// Clear bit 19,21 - Disable isoch auto recover.
 
-	value &= ~(BIT(21) | BIT(19));
+	value &= ~FL2K_USB_ISO_AUTO_RECOVER;
 
 	// Clear bit 13 - Disable isoch feedback interrupt.
 
-	value &= ~BIT(13);
+	value &= ~FL2K_USB_ISO_FRAME_FEEDBACK;
 
 	// Clear bit 27:29 - End Of Frame Type
 
-	value &= ~(BIT(29) | BIT(28) | BIT(27));
+	value &= ~FL2K_USB_END_MASK;
 
 #if 0	/* ULLI : remains only as remark */
 	if (dev_ctx->vr_params.end_of_frame_type == EOF_ZERO_LENGTH) {
 		// Zero Length Bulk.
 		//
 #endif
-		value |= BIT(28);
+		value |= FL2K_USB_END_ZERO_BULK;
 #if 0	/* ULLI : remains only as remark */
 	}
 	else  {
 		// Pending Bit.
 		//
-		value |= BIT(29);
+		value |= FL2K_USB_END_PENDIG_BIT;
 	}
 #endif
 

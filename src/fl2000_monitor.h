@@ -24,6 +24,16 @@ enum fl2k_monitor_config {
 	FL2K_MON_RGB_555_MODE    = BIT(31),
 };
 
+enum fl2k_usb_config_ctrl {
+	FL2K_USB_BIA = BIT(22),					/* USB BIA ??? */
+	FL2K_USB_ISO_ERR_INT = BIT(24),				/* USB isoch err interrupt */
+	FL2K_USB_ISO_AUTO_RECOVER = (BIT(21) | BIT(19)),	/* 2 bits why */
+	FL2K_USB_ISO_FRAME_FEEDBACK = BIT(13),			/* Feedback interrupt ? see REG_OFFSET_8000 */
+	FL2K_USB_END_ZERO_BULK = BIT(28),	/* send zero bulk at end of picture frame */
+	FL2K_USB_END_PENDIG_BIT = BIT(29),	/* send pending ? bit at end of frame */
+};
+
+#define FL2K_USB_END_MASK	GENMASK(29,27)
 
 void fl2000_monitor_read_edid(struct dev_ctx * dev_ctx);
 
