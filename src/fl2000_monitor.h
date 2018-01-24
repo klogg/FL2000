@@ -11,6 +11,20 @@
 #ifndef _FL2000_MONITOR_H_
 #define _FL2000_MONITOR_H_
 
+enum fl2k_monitor_config {
+	FL2K_MON_RESET_VGA_CSS = BIT(0),
+	FL2K_MON_RGB_565_MODE      = BIT(6),
+	FL2K_MON_EXTERNAL_DAC  = BIT(7),     /*  HDMI ? */
+	FL2K_MON_COMPRESSION = BIT(24),
+	FL2K_MON_8BIT_RGB = BIT(25),         /*  really  only 8 bit, so maybe 222 RGB*/
+	FL2K_MON_256COLOR_PALETTE = BIT(26), /*  like old VGA displays ?? */
+
+	FL2K_MON_FIRST_BYTE_MASK = BIT(27),
+	FL2K_MON_RESET_DEFAULT = BIT(28),    /*  active low */
+	FL2K_MON_RGB_555_MODE    = BIT(31),
+};
+
+
 void fl2000_monitor_read_edid(struct dev_ctx * dev_ctx);
 
 bool fl2000_monitor_resolution_in_white_table(

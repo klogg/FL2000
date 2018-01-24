@@ -282,36 +282,36 @@ static void _fl2000_set_video_mode(struct dev_ctx * dev_ctx)
 	// Clear bit 28, Default setting.
 	//
 
-	value &= ~BIT(28);
+	value &= ~FL2K_MON_RESET_DEFAULT;
 
 	// Clear bit 6( 565 ) & 31( 555 ), 16 bit color mode.
 
-	value &= ~(BIT(6) | BIT(31));
+	value &= ~(FL2K_MON_RGB_565_MODE | FL2K_MON_RGB_555_MODE);
 
 	// Clear bit 24, Disable compression.
 
-	value &= ~BIT(24);
+	value &= ~FL2K_MON_COMPRESSION;
 
 	// Clear bit 25, Disable 8 bit color mode.
 
-	value &= ~BIT(25);
+	value &= ~FL2K_MON_8BIT_RGB;
 
 	// Clear bit 26, Disable 256 color palette.
 
-	value &= ~BIT(26);
+	value &= ~FL2K_MON_256COLOR_PALETTE;
 
 	// Clear bit 27, Disable first byte mask.
 
-	value &= ~BIT(27);
+	value &= ~FL2K_MON_FIRST_BYTE_MASK;
 
 	// Set bit 0, Reset VGA CCS.
 
-	value |= BIT(0);
+	value |= FL2K_MON_RESET_VGA_CSS;
 
 	if (dev_ctx->vr_params.use_compression) {
 		// Set bit 24, Enable compression mode.
 		
-		value |= BIT(24);
+		value |= FL2K_MON_COMPRESSION;
 	}
 
 	if (OUTPUT_IMAGE_TYPE_RGB_16 == dev_ctx->vr_params.output_image_type) {
@@ -319,12 +319,12 @@ static void _fl2000_set_video_mode(struct dev_ctx * dev_ctx)
 		    dev_ctx->vr_params.color_mode_16bit) {
 			// Bit 31 for 555 mode.
 			//
-			value |= BIT(31);
+			value |= FL2K_MON_RGB_555_MODE;
 		}
 		else {
 			// Bit 6 for 565 mode.
 			//
-			value |= BIT(6);
+			value |= FL2K_MON_RGB_565_MODE;
 		}
 	}
 #if 0	/* ULLI : disabled, code is kept here only for consistently */	
@@ -332,7 +332,7 @@ static void _fl2000_set_video_mode(struct dev_ctx * dev_ctx)
 		 dev_ctx->vr_params.output_image_type) {
 		// Bit 25 for enable eight bit color mode.
 		//
-		value |= BIT(25);
+		value |= FL2K_MON_8BIT_RGB;
 	}
 #endif
 
@@ -340,7 +340,7 @@ static void _fl2000_set_video_mode(struct dev_ctx * dev_ctx)
 	//
 	// Set bit 7, Enable external DAC.
 	//
-	value |= BIT(7);
+	value |= FL2K_MON_EXTERNAL_DAC;
 
 	ret = fl2000_reg_write(dev_ctx, REG_OFFSET_8004, &value);
 }
