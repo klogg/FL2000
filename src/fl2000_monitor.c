@@ -275,7 +275,7 @@ static void _fl2000_set_video_mode(struct dev_ctx * dev_ctx)
 
 	// REG_OFFSET_8004
 
-	ret = fl2000_reg_read(dev_ctx, REG_OFFSET_8004, &value);
+	ret = fl2000_reg_read(dev_ctx, FL2K_REG_FORMAT, &value);
 	if (ret < 0)
 		return;
 
@@ -342,7 +342,7 @@ static void _fl2000_set_video_mode(struct dev_ctx * dev_ctx)
 	//
 	value |= FL2K_MON_EXTERNAL_DAC;
 
-	ret = fl2000_reg_write(dev_ctx, REG_OFFSET_8004, &value);
+	ret = fl2000_reg_write(dev_ctx, FL2K_REG_FORMAT, &value);
 }
 
 static void _fl2000_set_intrl_ctrl(struct dev_ctx * dev_ctx)
@@ -353,7 +353,7 @@ static void _fl2000_set_intrl_ctrl(struct dev_ctx * dev_ctx)
 	// REG_OFFSET_803C
 	//
 
-	ret = fl2000_reg_read(dev_ctx, REG_OFFSET_803C, &value);
+	ret = fl2000_reg_read(dev_ctx, FL2K_REG_INT_CTRL, &value);
 	if (ret < 0)
 		return;
 
@@ -392,7 +392,7 @@ static void _fl2000_set_intrl_ctrl(struct dev_ctx * dev_ctx)
 	}
 #endif
 
-	ret = fl2000_reg_write(dev_ctx, REG_OFFSET_803C, &value);
+	ret = fl2000_reg_write(dev_ctx, FL2K_REG_INT_CTRL, &value);
 
 }
 
@@ -425,28 +425,28 @@ static int _fl2000_set_video_timing(struct dev_ctx * dev_ctx,
 
 	// REG_OFFSET_8008
 	//
-	if (_fl2000_reg_write_verify(dev_ctx, REG_OFFSET_8008, &h_sync_reg_1)) {
+	if (_fl2000_reg_write_verify(dev_ctx, FL2K_REG_H_SYNC1, &h_sync_reg_1)) {
 		ret_val = false;
 		goto exit;
 	}
 
 	// REG_OFFSET_800C
 	//
-	if (_fl2000_reg_write_verify(dev_ctx, REG_OFFSET_800C, &h_sync_reg_2)) {
+	if (_fl2000_reg_write_verify(dev_ctx, FL2K_REG_H_SYNC2, &h_sync_reg_2)) {
 		ret_val = false;
 		goto exit;
 	}
 
 	// REG_OFFSET_8010
 	//
-	if (_fl2000_reg_write_verify(dev_ctx, REG_OFFSET_8010, &v_sync_reg_1)) {
+	if (_fl2000_reg_write_verify(dev_ctx, FL2K_REG_V_SYNC1, &v_sync_reg_1)) {
 		ret_val = false;
 		goto exit;
 	}
 
 	// REG_OFFSET_8014
 	//
-	if (_fl2000_reg_write_verify(dev_ctx, REG_OFFSET_8014, &v_sync_reg_2)) {
+	if (_fl2000_reg_write_verify(dev_ctx, FL2K_REG_V_SYNC2, &v_sync_reg_2)) {
 		ret_val = false;
 		goto exit;
 	}
@@ -473,7 +473,7 @@ static bool fl2000_monitor_set_resolution(struct dev_ctx * dev_ctx, bool pll_cha
 		// REG_OFFSET_802C
 		//
 		data = dev_ctx->vr_params.pll_reg;
-		fl2000_reg_write(dev_ctx, REG_OFFSET_802C, &data);
+		fl2000_reg_write(dev_ctx, FL2K_REG_PLL, &data);
 	}
 
 	// REG_OFFSET_8048 ( 0x8048 )< bit 15 > = 1, app reset, self clear.
@@ -483,7 +483,7 @@ static bool fl2000_monitor_set_resolution(struct dev_ctx * dev_ctx, bool pll_cha
 	// Confirm PLL setting.
 	//
 	data = 0;
-	fl2000_reg_read(dev_ctx, REG_OFFSET_802C, &data);
+	fl2000_reg_read(dev_ctx, FL2K_REG_PLL, &data);
 	if (dev_ctx->vr_params.pll_reg != data) {
 		ret_val = false;
 		goto exit;
@@ -498,9 +498,9 @@ static bool fl2000_monitor_set_resolution(struct dev_ctx * dev_ctx, bool pll_cha
 
 	// Clear bit 29:16 - Iso Register
 	//
-	if (fl2000_reg_read(dev_ctx, REG_OFFSET_801C, &data)) {
+	if (fl2000_reg_read(dev_ctx, FL2K_REG_ISO_CTRL, &data)) {
 		data &= 0xC000FFFF;
-		if (!fl2000_reg_write( dev_ctx, REG_OFFSET_801C, &data)) {
+		if (!fl2000_reg_write( dev_ctx, FL2K_REG_ISO_CTRL, &data)) {
 			ret_val = false;
 			goto exit;
 		}
@@ -774,7 +774,7 @@ fl2000_monitor_plugout_handler(
 	// TODO: FL2000DX should not need this step per Stanley's description.
 	//       This maybe hardware issue, and Jun is checking now.
 	//
-	fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_803C, 26);
+	fl2000_reg_bit_clear(dev_ctx, FL2K_REG_INT_CTRL, 26);
 
 	// Per NJ's description:
 	// Register 0x78 bit17 is used to control a bug where we did not wake up U1/U2 even
@@ -851,7 +851,7 @@ fl2000_monitor_manual_check_connection(struct dev_ctx * dev_ctx)
 	dbg_msg(TRACE_LEVEL_VERBOSE, DBG_PNP, ">>>>");
 
 	data = 0;
-	if (fl2000_reg_read(dev_ctx, REG_OFFSET_8000, &data)) {
+	if (fl2000_reg_read(dev_ctx, FL2K_REG_INT_STATUS, &data)) {
 		fl2000_monitor_vga_status_handler(dev_ctx, data);
 	}
 

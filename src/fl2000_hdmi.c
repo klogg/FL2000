@@ -2005,11 +2005,11 @@ fl2000_hdmi_init(struct dev_ctx * dev_ctx, bool resolution_change)
                 //
                 //HDMI_ForceMonitorConnected( dev_ctx );
 
-                fl2000_reg_bit_set(dev_ctx, REG_OFFSET_803C, 25);
+                fl2000_reg_bit_set(dev_ctx, FL2K_REG_INT_CTRL, 25);
 
                 is_good = fl2000_hdmi_set_display_mode(dev_ctx);
 
-                fl2000_reg_bit_clear(dev_ctx, REG_OFFSET_803C, 25);
+                fl2000_reg_bit_clear(dev_ctx, FL2K_REG_INT_CTRL, 25);
 
                 if (!is_good) {
                         dbg_msg(TRACE_LEVEL_ERROR, DBG_PNP,

@@ -272,7 +272,7 @@ fl2000_intr_process(struct dev_ctx * dev_ctx)
 
 	// Get interrupt status
 	//
-	if (fl2000_reg_read(dev_ctx, REG_OFFSET_8000, &data)) {
+	if (fl2000_reg_read(dev_ctx, FL2K_REG_INT_STATUS, &data)) {
 		struct vga_status * vga_status;
 
 		vga_status = (struct vga_status *)&data;
