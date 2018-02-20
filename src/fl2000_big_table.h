@@ -11,8 +11,6 @@
 #ifndef _FL2000_BIG_TABLE_H_
 #define _FL2000_BIG_TABLE_H_
 
-#define VGA_BIG_TABLE_SIZE              73
-
 #define VGA_BIG_TABLE_24BIT_R0		0
 #define VGA_BIG_TABLE_16BIT_R0		2
 

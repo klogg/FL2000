@@ -10,7 +10,7 @@
 
 #include "fl2000_include.h"
 
-struct fl2000_timing_entry const big_table_24bit_r0[VGA_BIG_TABLE_SIZE] = {
+struct fl2000_timing_entry const big_table_24bit_r0[] = {
 	{ 640,480,60, 0x320, 0x20d, 0x2800320, 0x600089, 0x1e0020d, 0x1c2001c, 0x3f6119 },
 	{ 640,480,73, 0x340, 0x208, 0x2800340, 0x2800a1, 0x1e00208, 0x1830018, 0x3c6113 },
 	{ 640,480,75, 0x348, 0x1f4, 0x2800348, 0x4000b9, 0x1e001f4, 0x1430014, 0x3f6114 },
@@ -86,7 +86,7 @@ struct fl2000_timing_entry const big_table_24bit_r0[VGA_BIG_TABLE_SIZE] = {
 	{ 1920,1080,30, 0x898, 0x465, 0x7800898, 0x2c00c1, 0x4380465, 0x2a5002a, 0x346107 },
 };
 
-struct fl2000_timing_entry const big_table_16bit_r0[VGA_BIG_TABLE_SIZE] = {
+struct fl2000_timing_entry const big_table_16bit_r0[] = {
 	{ 640,480,60, 0x320, 0x20d, 0x2800320, 0x600089, 0x1e0020d, 0x1c2001c, 0x3f6119 },
 	{ 640,480,73, 0x340, 0x208, 0x2800340, 0x2800a1, 0x1e00208, 0x1830018, 0x3c6113 },
 	{ 640,480,75, 0x348, 0x1f4, 0x2800348, 0x4000b9, 0x1e001f4, 0x1430014, 0x3f6114 },
@@ -171,7 +171,7 @@ fl2000_table_get_entry(
 {
 	struct fl2000_timing_entry const * table;
 	struct fl2000_timing_entry const * entry = NULL;
-	uint32_t i;
+	uint32_t i, size;
 	
 	table = NULL;
 
@@ -185,16 +185,18 @@ fl2000_table_get_entry(
 	switch (table_num) {
 	case VGA_BIG_TABLE_24BIT_R0:
 		table = big_table_24bit_r0;
+		size = ARRAY_SIZE(big_table_24bit_r0);
 		break;
 	case VGA_BIG_TABLE_16BIT_R0:
 		table = big_table_16bit_r0;
+		size = ARRAY_SIZE(big_table_16bit_r0);
 		break;
 	default:
-		table = big_table_16bit_r0;
+		BUG();
 		break;
 	}
 
-	for(i = 0; i < VGA_BIG_TABLE_SIZE; i++) {
+	for(i = 0; i < size; i++) {
 		if (width == table[i].width &&
 		    height == table[i].height &&
 		    freq == table[i].freq) {
