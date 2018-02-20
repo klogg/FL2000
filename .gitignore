@@ -7,4 +7,6 @@ modules.order
 .tmp_versions
 fl2000.mod.c
 sample/fltes
-
+.cproject
+.project
+.settings
